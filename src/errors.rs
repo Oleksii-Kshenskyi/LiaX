@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 #[derive(Debug)]
 pub struct LiaXError {
-    text: &'static str,
+    text: String,
 }
 
 impl Display for LiaXError {
@@ -15,7 +15,7 @@ impl Display for LiaXError {
 impl Error for LiaXError {}
 
 impl LiaXError {
-    pub fn new(text: &'static str) -> Self {
+    pub fn new(text: String) -> Self {
         Self { text }
     }
 }

@@ -5,7 +5,7 @@ pub type BuiltinFn = fn(Vec<DataType>) -> LiaXResult;
 
 #[derive(Clone, Debug)]
 pub struct IntType {
-    pub value: i64
+    pub value: i64,
 }
 impl IntType {
     pub fn new(value: i64) -> Self {

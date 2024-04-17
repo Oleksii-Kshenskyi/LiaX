@@ -1,6 +1,10 @@
 use std::error::Error;
 use std::fmt::Display;
 
+pub fn s(s: &str) -> String {
+    s.to_string()
+}
+
 #[derive(Debug)]
 pub struct LiaXError {
     text: String,

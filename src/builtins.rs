@@ -1,10 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{errors::LiaXError, types::*};
-
-pub fn s(s: &str) -> String {
-    s.to_string()
-}
+use crate::{errors::*, types::*};
 
 pub fn builtins_map() -> HashMap<String, BuiltinFn> {
     [("+".to_owned(), plus as BuiltinFn)].into_iter().collect()

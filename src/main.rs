@@ -3,17 +3,15 @@ mod builtins;
 mod errors;
 mod eval;
 mod lexer;
+mod parser;
 mod types;
 
+use crate::errors::s;
 use crate::eval::evaluate_sexpr;
-use crate::lexer::Lexer;
 
-pub const THE_SEXPR: &str = "(+ 1 2)";
+pub const THE_SEXPR: &str = "(+ 10 20)";
 
-// TODO: Implemented the statement execution part, but not the parsing.
+// FIXME: Fix all the clippy issues and warnings.
 fn main() {
-    // TODO: simple lexing seems to be working, now implement parsing and execution.
-    let lexed = Lexer::new(THE_SEXPR).lex().unwrap();
-    println!("{} Lexed: {:#?}\n", THE_SEXPR, lexed);
-    println!("{} = {}", THE_SEXPR, evaluate_sexpr(THE_SEXPR));
+    println!("{} = {}", THE_SEXPR, evaluate_sexpr(s(THE_SEXPR)).unwrap());
 }

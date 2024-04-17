@@ -102,10 +102,10 @@ impl<'a> Lexer<'a> {
                 }
                 Some(c) => {
                     println!("C error: {}, pos = {}", c, self.pos);
-                    return Err(LiaXError::new(format!(
-                        "Lexer Error at pos {}: couldn't lex char `{}`.",
+                    return Err(LiaXError::new(ErrorType::Lexing(format!(
+                        "at pos {}: couldn't lex char `{}`.",
                         self.pos, c
-                    )));
+                    ))));
                 }
                 None => {
                     println!("nope, pos is {}", self.pos);

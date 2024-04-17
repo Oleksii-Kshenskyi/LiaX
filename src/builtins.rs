@@ -8,9 +8,9 @@ pub fn builtins_map() -> HashMap<String, BuiltinFn> {
 
 pub fn plus(to_add: Vec<DataType>) -> LiaXResult {
     if !to_add.iter().all(|e| matches!(e, DataType::Int(_))) {
-        return Err(LiaXError::new(s(
+        return Err(LiaXError::new(ErrorType::Eval(s(
             "ERROR: Currently, you can only perform arithmetic operations on ints.",
-        )));
+        ))));
     }
 
     Ok(DataType::Int(IntType::new(

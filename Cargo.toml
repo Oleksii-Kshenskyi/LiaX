@@ -3,6 +3,9 @@ name = "LiaX"
 version = "0.0.1"
 edition = "2021"
 
+[profile.release]
+overflow-checks = true
+
 [lib]
 name = "liblia"
 path = "src/lib.rs"

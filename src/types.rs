@@ -65,6 +65,13 @@ pub enum Instruction {
 pub fn show_datatype(atom: &DataType) -> String {
     match atom {
         DataType::Int(i) => i.value.to_string(),
-        DataType::Function(func) => format!("({} {})", func.name, format!("{{{} to {:?} args}}", func.args_limit_lower, func.args_limit_higher)),
+        DataType::Function(func) => format!(
+            "({} {})",
+            func.name,
+            format!(
+                "{{{} to {:?} args}}",
+                func.args_limit_lower, func.args_limit_higher
+            )
+        ),
     }
 }

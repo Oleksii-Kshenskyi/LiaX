@@ -18,38 +18,38 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Instruction, LiaXError> {
         let v = &self.to_parse;
         if v.len() == 0 {
-            return Err(LiaXError::new(s(
+            return Err(LiaXError::new(ErrorType::Parsing(s(
                 "ERROR: Parser got a vector with 0 tokens from the lexer?..",
-            )));
+            ))));
         }
 
         for (index, token) in v.iter().enumerate() {
             if index == 0 && *token != Token::OpenParen {
                 // we are trying to parse an atom/literal, there should only be a single token in the vector at this point
                 if v.len() != 1 {
-                    return Err(LiaXError::new(s("ERROR: expresion is not an S-Expression and not a single literal. These two are the only cases LiaX is handling currently.")));
+                    return Err(LiaXError::new(ErrorType::Parsing(s("ERROR: expresion is not an S-Expression and not a single literal. These two are the only cases LiaX is handling currently."))));
                 }
 
                 // If we're here, this means that we got a single token which has to be a DataType so we could Show it.
                 match v.first().unwrap() {
                     Token::OpenParen => unreachable!("Shouldn't happen. We've already asserted that this token is not OpenParen."),
-                    Token::CloseParen => return Err(LiaXError::new(s("ERROR: Got a single token, `)`. Can't do anything with it."))),
-                    Token::Identifier(id) => return Err(LiaXError::new(format!("ERROR: found a single token, an unknown identifier `{}`.", id))),
+                    Token::CloseParen => return Err(LiaXError::new(ErrorType::Parsing(s("ERROR: Got a single token, `)`. Can't do anything with it.")))),
+                    Token::Identifier(id) => return Err(LiaXError::new(ErrorType::Parsing(format!("ERROR: found a single token, an unknown identifier `{}`.", id)))),
                     Token::Int(num) => return Ok(Instruction::Show(DataType::Int(IntType::new(*num)))),
                 }
             }
 
             // now we're out of a "single token" case, and we're considering this a function call.
             if v.len() < 2 {
-                return Err(LiaXError::new(s(
+                return Err(LiaXError::new(ErrorType::Parsing(s(
                     "ERR: Expected an identifier after opening paren.",
-                )));
+                ))));
             } else {
                 if let Some(Token::Identifier(id)) = v.get(1) {
                     match builtins_map().get(id) {
                         Some(func) => {
                             if *v.last().unwrap() != Token::CloseParen {
-                                return Err(LiaXError::new(s("ERROR: Did you forget to have a closing parenthesis at the end of your expression?")));
+                                return Err(LiaXError::new(ErrorType::Parsing(s("ERROR: Did you forget to have a closing parenthesis at the end of your expression?"))));
                             }
                             let args = if v.len() > 2 {
                                 v[2..=(v.len() - 2)].iter().map(|tok| match tok {
@@ -69,17 +69,17 @@ impl Parser {
                             )));
                         }
                         None => {
-                            return Err(LiaXError::new(format!(
+                            return Err(LiaXError::new(ErrorType::Parsing(format!(
                                 "Can't find function named {} in this scope.",
                                 &id
-                            )))
+                            ))))
                         }
                     }
                 } else {
-                    return Err(LiaXError::new(format!(
+                    return Err(LiaXError::new(ErrorType::Parsing(format!(
                         "ERROR: Expected identifier as a first argument in a call, got {:?}",
                         v.get(1).unwrap()
-                    )));
+                    ))));
                 }
             }
         }

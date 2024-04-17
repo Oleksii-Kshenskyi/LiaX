@@ -52,7 +52,6 @@ impl FunctionType {
 #[derive(Clone, Debug)]
 pub enum DataType {
     Int(IntType),
-    // FIXME: Fix this warning.
     Function(FunctionType),
     Unit,
 }
@@ -68,12 +67,8 @@ pub fn show_datatype(atom: &DataType) -> String {
     match atom {
         DataType::Int(i) => i.value.to_string(),
         DataType::Function(func) => format!(
-            "({} {})",
-            func.name,
-            format!(
-                "{{{} to {:?} args}}",
-                func.args_limit_lower, func.args_limit_higher
-            )
+            "({} {{{} to {:?} args}})",
+            func.name, func.args_limit_lower, func.args_limit_higher
         ),
         DataType::Unit => s("()"),
     }

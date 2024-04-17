@@ -8,7 +8,7 @@ pub enum Token {
     Identifier(String),
 }
 
-pub const VALID_ID_CHARS: &'static str = "+*-/";
+pub const VALID_ID_CHARS: &'static str = "+*-/_";
 
 pub struct Lexer<'a> {
     pos: usize,
@@ -16,8 +16,10 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    fn char_is_valid_id(c: char) -> bool {
-        c.is_alphanumeric() || VALID_ID_CHARS.find(c).is_some()
+    fn char_is_valid_id(full_id: &str, c: char) -> bool {
+        let is_number_ey =
+            full_id.chars().all(|c| c.is_digit(10)) || full_id.chars().nth(0).unwrap().is_digit(10);
+        !is_number_ey && (c.is_alphanumeric() || VALID_ID_CHARS.find(c).is_some())
     }
     fn consume_whitespaces(&mut self) {
         while let Some(c) = self.peek() {
@@ -72,6 +74,22 @@ impl<'a> Lexer<'a> {
                     lexed.push(Token::CloseParen);
                     self.consume_noclone();
                 }
+                Some(c) if Self::char_is_valid_id(&format!("{}{}", lexing, c), c) => {
+                    // TODO: remove debug printing once lexing/parsing are working.
+                    // println!("C is id: {}, pos = {}", c, self.pos);
+                    lexing.push(c);
+                    let maybe_next = self.peek_next();
+                    if maybe_next.is_none() && !lexing.is_empty() {
+                        lexed.push(Token::Identifier(lexing.clone()));
+                        lexing.clear();
+                    } else if let Some(next) = maybe_next {
+                        if next.is_whitespace() || next == ')' {
+                            lexed.push(Token::Identifier(lexing.clone()));
+                            lexing.clear();
+                        }
+                    }
+                    self.consume_noclone();
+                }
                 Some(c) if c.is_digit(10) => {
                     // TODO: remove debug printing once lexing/parsing are working.
                     // println!("C is digit: {}, pos = {}", c, self.pos);
@@ -92,18 +110,6 @@ impl<'a> Lexer<'a> {
                         }
                     }
                     self.consume_noclone();
-                }
-                Some(c) if Self::char_is_valid_id(c) => {
-                    // TODO: remove debug printing once lexing/parsing are working.
-                    // println!("C is id: {}, pos = {}", c, self.pos);
-                    lexing.push(c);
-                    if let Some(next) = self.peek_next() {
-                        if next.is_whitespace() {
-                            lexed.push(Token::Identifier(lexing.clone()));
-                            lexing.clear();
-                            self.consume_noclone();
-                        }
-                    }
                 }
                 Some(c) => {
                     println!("C error: {}, pos = {}", c, self.pos);

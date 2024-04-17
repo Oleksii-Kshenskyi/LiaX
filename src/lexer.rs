@@ -10,6 +10,10 @@ pub enum Token {
 
 pub const VALID_ID_CHARS: &str = "+*-/_";
 
+// TODO: either lexer, or parser, or both have to track their position
+//       via a line number and a char number in the line
+//       and report the numbers on every error.
+//       (this is after we start parsing LiaX programs from files)
 pub struct Lexer<'a> {
     pos: usize,
     expr: &'a str,

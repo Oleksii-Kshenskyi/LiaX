@@ -2,6 +2,11 @@ use std::collections::HashMap;
 
 use crate::{errors::*, types::*};
 
+// TODO: introduce string functions
+// TODO: introduce functional iteration (map, filter, reduce, all, etc.)
+// TODO: introduce printing
+// TODO: introduce file IO
+
 pub fn builtins_map() -> HashMap<String, BuiltinFn> {
     [("+".to_owned(), plus as BuiltinFn)].into_iter().collect()
 }

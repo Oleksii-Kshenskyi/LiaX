@@ -49,6 +49,8 @@ impl FunctionType {
     }
 }
 
+// TODO: introduce floats
+// TODO: introduce strings
 #[derive(Clone, Debug)]
 pub enum DataType {
     Int(IntType),

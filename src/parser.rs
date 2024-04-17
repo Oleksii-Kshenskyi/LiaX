@@ -13,6 +13,12 @@ impl Parser {
         }
     }
 
+    // TODO: Parsing error reporting has to improve
+    //       (especially once we switch to parsing from files).
+    //       - start differentiating between different kinds of parsing errors;
+    //       - start specifying where the actual errors happen
+    //         (not just line/char number, but also argument number in a function, etc.)
+
     // TODO: Make the parser capable of recursively parsing s-expressions.
     pub fn parse(&mut self) -> Result<Instruction, LiaXError> {
         let v = &self.to_parse;

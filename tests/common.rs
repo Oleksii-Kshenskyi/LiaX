@@ -20,7 +20,6 @@ pub fn assert_parsing_error(res: Result<String, LiaXError>) -> bool {
     }
 }
 
-#[allow(dead_code)]
 pub fn assert_eval_error(res: Result<String, LiaXError>) -> bool {
     match res {
         Ok(_) => false,

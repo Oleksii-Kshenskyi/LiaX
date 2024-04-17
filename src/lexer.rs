@@ -58,6 +58,7 @@ impl<'a> Lexer<'a> {
         let mut lexing = String::new();
 
         let lex_len = self.expr.len();
+        self.consume_whitespaces();
         while self.pos < lex_len {
             // println!("self pos: {}, lex_len: {}", self.pos, lex_len);
             match self.peek() {
@@ -73,14 +74,18 @@ impl<'a> Lexer<'a> {
                 }
                 Some(c) if c.is_digit(10) => {
                     // TODO: remove debug printing once lexing/parsing are working.
-                    println!("C is digit: {}, pos = {}", c, self.pos);
+                    // println!("C is digit: {}, pos = {}", c, self.pos);
                     let token_is_digit = lexing.chars().all(|c| c.is_digit(10));
                     if lexing.is_empty() || token_is_digit {
                         lexing.push(c);
                     }
-                    if let Some(next) = self.peek_next() {
+                    let maybe_next = self.peek_next();
+                    if maybe_next.is_none() && !lexing.is_empty() && token_is_digit {
+                        lexed.push(Token::Int(lexing.parse::<i64>().unwrap()));
+                        lexing.clear();
+                    } else if let Some(next) = maybe_next {
                         // TODO: remove debug printing once lexing/parsing are working.
-                        println!("C is digit: {}, next is whitespace, pos = {}", c, self.pos);
+                        // println!("C is digit: {}, next is whitespace, pos = {}", c, self.pos);
                         if next.is_whitespace() || next == ')' {
                             lexed.push(Token::Int(lexing.parse::<i64>().unwrap()));
                             lexing.clear();
@@ -90,7 +95,7 @@ impl<'a> Lexer<'a> {
                 }
                 Some(c) if Self::char_is_valid_id(c) => {
                     // TODO: remove debug printing once lexing/parsing are working.
-                    println!("C is id: {}, pos = {}", c, self.pos);
+                    // println!("C is id: {}, pos = {}", c, self.pos);
                     lexing.push(c);
                     if let Some(next) = self.peek_next() {
                         if next.is_whitespace() {

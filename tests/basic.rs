@@ -33,6 +33,7 @@ fn eval_understands_weird_spacing() {
 #[test]
 fn only_s_exprs_and_atoms_are_valid() {
     assert_eq!(Ok(s("3")), evaluate_sexpr(s("3")));
+    assert_eq!(Ok(s("69420")), evaluate_sexpr(s("69420")));
 
     assert!(assert_lexing_error(evaluate_sexpr(s("."))));
 

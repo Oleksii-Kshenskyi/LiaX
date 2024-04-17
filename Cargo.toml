@@ -3,6 +3,14 @@ name = "LiaX"
 version = "0.0.1"
 edition = "2021"
 
+[lib]
+name = "liblia"
+path = "src/lib.rs"
+
+[[bin]]
+name = "LiaX"
+path = "src/repl.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

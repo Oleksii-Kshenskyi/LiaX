@@ -77,7 +77,7 @@ impl Parser {
                     }
                 } else {
                     return Err(LiaXError::new(format!(
-                        "ERROR: Expected identifier as a first argument in a call, got {:#?}",
+                        "ERROR: Expected identifier as a first argument in a call, got {:?}",
                         v.get(1).unwrap()
                     )));
                 }

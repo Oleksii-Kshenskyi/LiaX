@@ -90,6 +90,9 @@ impl<'a> Lexer<'a> {
                     }
                     self.consume_noclone();
                 }
+                Some(c) if Self::char_is_valid_id(&format!("c{}", c), c) && !lexing.is_empty() && !c.is_digit(10) && lexing.chars().nth(0).unwrap().is_digit(10) => {
+                    return Err(LiaXError::new(ErrorType::Lexing(s("Identifiers can't start with a digit. Start ids with a letter or `_` instead."))));
+                }
                 Some(c) if c.is_digit(10) => {
                     // TODO: remove debug printing once lexing/parsing are working.
                     // println!("C is digit: {}, pos = {}", c, self.pos);

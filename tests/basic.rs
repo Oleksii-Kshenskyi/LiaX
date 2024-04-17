@@ -58,3 +58,8 @@ fn test_weird_arithmetic_op_corner_cases() {
 fn panics_due_to_int_overflow() {
     evaluate_sexpr(format!("(+ {} {})", i64::MAX, i64::MAX)).unwrap();
 }
+
+#[test]
+fn catches_known_corner_cases() {
+    assert!(assert_lexing_error(evaluate_sexpr(s("6identifier")))); // identifier that starts with a digit is a lexing error
+}

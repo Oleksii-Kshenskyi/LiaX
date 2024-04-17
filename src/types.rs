@@ -1,4 +1,4 @@
-use crate::errors::LiaXError;
+use crate::errors::*;
 
 use std::ops::Range;
 
@@ -54,10 +54,12 @@ pub enum DataType {
     Int(IntType),
     // FIXME: Fix this warning.
     Function(FunctionType),
+    Unit,
 }
 
 #[derive(Clone, Debug)]
 pub enum Instruction {
+    NoOp,
     Show(DataType),
     Call(FunctionType),
 }
@@ -73,5 +75,6 @@ pub fn show_datatype(atom: &DataType) -> String {
                 func.args_limit_lower, func.args_limit_higher
             )
         ),
+        DataType::Unit => s("()"),
     }
 }

@@ -17,10 +17,11 @@ impl Parser {
     // TODO: Make the parser capable of recursively parsing s-expressions.
     pub fn parse(&mut self) -> Result<Instruction, LiaXError> {
         let v = &self.to_parse;
+        if v.len() == 2 && *v.get(0).unwrap() == Token::OpenParen && *v.get(1).unwrap() == Token::CloseParen {
+            return Ok(Instruction::Show(DataType::Unit));
+        }
         if v.len() == 0 {
-            return Err(LiaXError::new(ErrorType::Parsing(s(
-                "ERROR: Parser got a vector with 0 tokens from the lexer?..",
-            ))));
+            return Ok(Instruction::NoOp);
         }
 
         for (index, token) in v.iter().enumerate() {

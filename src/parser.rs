@@ -141,6 +141,7 @@ impl Parser {
         }
 
         if v[pos] != Token::OpenParen {
+            println!("pre-error v is: `{:?}`", v);
             return Err(LiaXError::new(ErrorType::Eval(format!(
                 "Expected an S-Expression to start with an `(`, it starts with `{:?}` instead.",
                 v[pos]
@@ -213,22 +214,29 @@ impl Parser {
             return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to start with an `(`, but it starts with `{:?}` instead.", fst))))
         }
 
-        let mut token_pos: usize = 0;
+        let mut token_pos: usize = 1;
         let mut flattened_expr: Vec<Token> = vec![];
+        if let Token::OpenParen = v.first().unwrap() {
+            flattened_expr.push(Token::OpenParen);
+        }
         while token_pos < v.len() {
+            println!("token_pos is `{}`", token_pos);
             match v.get(token_pos) {
                 Some(t) => {
                     if let Token::OpenParen = t {
                         match Self::eval_single_expr(token_pos, &v) {
                             Ok((shift, new_tok)) => {
-                                token_pos += shift;
+                                token_pos += shift + 1;
                                 flattened_expr.push(new_tok);
-                                continue;
                             }
                             Err(e) => {
                                 return Err(LiaXError::new(ErrorType::Parsing(format!("{}", e))))
                             }
                         }
+                    } else {
+                        println!("parse else t: `{:?}`, token_pos: `{}`", t, token_pos);
+                        flattened_expr.push(t.clone());
+                        token_pos += 1;
                     }
                 }
                 None => {
@@ -237,9 +245,9 @@ impl Parser {
                     ))))
                 }
             }
-            token_pos += 1;
         }
 
+        println!("final flattened is: `{:?}`", flattened_expr);
         let (_, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
         Ok(show_datatype(&final_res))
     }

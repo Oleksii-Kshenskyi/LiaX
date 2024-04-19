@@ -1,18 +1,11 @@
 use crate::{builtins::builtins_map, errors::*, lexer::*, types::*};
 
+// TODO: Once the recursion bugs from basic.rs tests are fixed,
+//       DO NOT FORGET TO CLEAN UP COMMENTED OUT CODE AND ALL THE PRINTS!
 pub struct Parser {
     to_parse: Vec<Token>,
 }
 
-// REFACTOR: The parser has an inherent flaw as it is right now.
-//           The length of tokens to advance by that collapse_expr() and
-//           eval_single_expr() return is bugged: it returns the expected
-//           number of tokens if they are passed the original vector, but they
-//           are sometimes passed the flattened vector, and in these cases the
-//           returned usize number is uncorrect.
-//           To fix this, either make it another hack by introducing a Parser member variable,
-//           or refactor it so it somehow always returns the correct number of tokens
-//           (maybe by collapsing flattened using a different function/method?)
 impl Parser {
     pub fn new(tokens: &[Token]) -> Self {
         Self {
@@ -34,7 +27,7 @@ impl Parser {
         }
     }
 
-    fn collapse_datatype( var: DataType) -> Result<Token, LiaXError> {
+    fn collapse_datatype(var: DataType) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
             DataType::Function(func) => func.call().map(|res| Self::datatype_to_token(res)),
@@ -43,6 +36,7 @@ impl Parser {
     }
 
     fn collapse_expr(expr_size: usize, expr: &[Token]) -> Result<(usize, Token), LiaXError> {
+        println!("collapsing expr: `{:?}`", expr);
         if expr.len() < 2
             || expr[0] != Token::OpenParen
             || expr[expr.len() - 1] != Token::CloseParen
@@ -102,6 +96,7 @@ impl Parser {
     }
 
     fn eval_single_expr(starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
+        println!("post-kek flattened: `{:?}`", v);
         if v.len() == 1 {
             match &v[0] {
                 Token::OpenParen => {
@@ -162,11 +157,23 @@ impl Parser {
                     Ok((shift, t)) => {
                         println!("internal shift: `{}`", shift);
                         pos = pos + shift;
+                        println!("+++++ KEKEKE INTERNAL, pushing new token: `{:?}`, pos: `{}`, shift: `{}` =====", t, pos, shift);
                         flattened.push(t);
                     }
                 }
             } else {
-                flattened.push(v[pos].clone());
+                println!("Adding to flattened: `{:?}`", v[pos]);
+                // TODO: This is a hack.
+                //       Once the main bug is fixed, find out why this expression
+                //       leads to adding a "+" identifier into the flattened expr
+                //       and maybe try to get rid of this weird if:
+                //       "(+ (+ (+ 1 (+ 1 3)) 3) 1)"
+                if !(flattened.len() > 0
+                    && *flattened.last().unwrap() != Token::OpenParen
+                    && matches!(v[pos], Token::Identifier(_)))
+                {
+                    flattened.push(v[pos].clone());
+                }
                 pos += 1;
             }
         }
@@ -176,9 +183,11 @@ impl Parser {
             // if v.len() > pos + 1 {
             //     return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to end at the end of the S-Expression, but it still has `{:?}` left at the end.", &v[pos+1..]))));
             // }
+            println!("pre-collapse flattened: `{:?}`", flattened);
             return Self::collapse_expr(pos - starting_pos, &flattened);
         }
 
+        println!("pre-kek flattened: `{:?}`", flattened);
         Self::eval_single_expr(0, &flattened)
     }
 
@@ -211,7 +220,10 @@ impl Parser {
 
         let fst = v.first().unwrap();
         if v.len() >= 2 && *fst != Token::OpenParen {
-            return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to start with an `(`, but it starts with `{:?}` instead.", fst))))
+            return Err(LiaXError::new(ErrorType::Parsing(format!(
+                "Expected expression to start with an `(`, but it starts with `{:?}` instead.",
+                fst
+            ))));
         }
 
         let mut token_pos: usize = 1;
@@ -227,6 +239,7 @@ impl Parser {
                         match Self::eval_single_expr(token_pos, &v) {
                             Ok((shift, new_tok)) => {
                                 token_pos += shift + 1;
+                                println!("===== KEKEKE parse, pushing new token: `{:?}`, pos: `{}`, shift: `{}` =====", new_tok, token_pos, shift);
                                 flattened_expr.push(new_tok);
                             }
                             Err(e) => {
@@ -248,11 +261,20 @@ impl Parser {
         }
 
         println!("final flattened is: `{:?}`", flattened_expr);
+        println!("final v is: `{:?}`, v len is `{}`", &v, v.len());
         let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
-        if check_index < flattened_expr.len() - 1 {
-            return Err(LiaXError::new(ErrorType::Parsing(format!("The s-expression has been evaluated, but the parsed expression still has these tokens left: `{:?}`", &v[check_index + 1..]))));
-        }
-        println!("check index: `{}`, flattened len is: `{}`", check_index, flattened_expr.len());
+        // NOTE: the check index code prevents the `(+ 3 3) 3` bug but bugs out on `"(+ (+ (+ 2 16)))"`.
+
+
+        // if check_index < flattened_expr.len() - 1 {
+        //     println!("check index: `{}`, flattened len is: `{}`", check_index, flattened_expr.len());
+        //     return Err(LiaXError::new(ErrorType::Parsing(format!("The s-expression has been evaluated, but the parsed expression still has these tokens left: `{:?}`", &v[(check_index+1)..]))));
+        // }
+        // println!(
+        //     "check index: `{}`, flattened len is: `{}`",
+        //     check_index,
+        //     flattened_expr.len()
+        // );
         Ok(show_datatype(&final_res))
     }
 }

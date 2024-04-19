@@ -34,7 +34,7 @@ impl Parser {
         }
     }
 
-    fn collapse_datatype(var: DataType) -> Result<Token, LiaXError> {
+    fn collapse_datatype( var: DataType) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
             DataType::Function(func) => func.call().map(|res| Self::datatype_to_token(res)),
@@ -42,7 +42,7 @@ impl Parser {
         }
     }
 
-    fn collapse_expr(expr: &[Token]) -> Result<(usize, Token), LiaXError> {
+    fn collapse_expr(expr_size: usize, expr: &[Token]) -> Result<(usize, Token), LiaXError> {
         if expr.len() < 2
             || expr[0] != Token::OpenParen
             || expr[expr.len() - 1] != Token::CloseParen
@@ -68,6 +68,7 @@ impl Parser {
 
         if let Token::Identifier(id) = expr[1].clone() {
             if let Some(func) = builtins_map().get(&id) {
+                println!("expr is: `{:?}`\n\n", expr);
                 let args: Vec<DataType> = expr[2..expr.len() - 1]
                     .iter()
                     .map(|el| match el {
@@ -88,7 +89,7 @@ impl Parser {
                 return Self::collapse_datatype(DataType::Function(FunctionType::new(
                     id, args, *func,
                 )))
-                .map(|t| (1, t));
+                .map(|t| (expr_size, t));
             } else {
                 return Err(LiaXError::new(ErrorType::Collapse(format!(
                     "Expected a known function name, got unknown identifier `{}`.",
@@ -125,6 +126,7 @@ impl Parser {
         }
 
         let mut pos = starting_pos;
+        println!("start pos: `{}`", pos);
         let mut flattened: Vec<Token> = vec![];
 
         if v.len() == 2 {
@@ -157,21 +159,23 @@ impl Parser {
                 match Self::eval_single_expr(pos, v) {
                     Err(e) => return Err(LiaXError::new(ErrorType::Eval(format!("{}", e)))),
                     Ok((shift, t)) => {
-                        pos = pos + shift - 1;
+                        println!("internal shift: `{}`", shift);
+                        pos = pos + shift;
                         flattened.push(t);
                     }
                 }
             } else {
                 flattened.push(v[pos].clone());
+                pos += 1;
             }
-            pos += 1;
         }
         flattened.push(v[pos].clone());
+
         if !recursive {
-            if v.len() > pos + 1 {
-                return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to end at the end of the S-Expression, but it still has `{:?}` left at the end.", &v[pos+1..]))));
-            }
-            return Self::collapse_expr(&flattened);
+            // if v.len() > pos + 1 {
+            //     return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to end at the end of the S-Expression, but it still has `{:?}` left at the end.", &v[pos+1..]))));
+            // }
+            return Self::collapse_expr(pos - starting_pos, &flattened);
         }
 
         Self::eval_single_expr(0, &flattened)

@@ -114,7 +114,10 @@ impl Parser {
     }
 
     fn collapse_expr(expr: &[Token]) -> Result<(usize, Token), LiaXError> {
-        if expr.len() < 2 || expr[0] != Token::OpenParen || expr[expr.len() - 1] != Token::CloseParen {
+        if expr.len() < 2
+            || expr[0] != Token::OpenParen
+            || expr[expr.len() - 1] != Token::CloseParen
+        {
             return Err(LiaXError::new(ErrorType::Collapse(format!(
                 "Error while collapsing `{:?}`: expected a single non-recursive expression.",
                 expr
@@ -273,18 +276,20 @@ impl Parser {
         let mut flattened_expr: Vec<Token> = vec![];
         while token_pos < v.len() {
             match v.get(token_pos) {
-                Some(t) => match t {
-                    Token::OpenParen => match Self::eval_single_expr(token_pos, &v) {
-                        Ok((shift, new_tok)) => {
-                            token_pos += shift - 1;
-                            println!("flat 1: `{:?}`", &flattened_expr);
-                            flattened_expr.push(new_tok);
-                            println!("flat 2: `{:?}`", &flattened_expr);
+                Some(t) => {
+                    if let Token::OpenParen = t {
+                        match Self::eval_single_expr(token_pos, &v) {
+                            Ok((shift, new_tok)) => {
+                                token_pos += shift;
+                                flattened_expr.push(new_tok);
+                                continue;
+                            }
+                            Err(e) => {
+                                return Err(LiaXError::new(ErrorType::Parsing(format!("{}", e))))
+                            }
                         }
-                        Err(e) => return Err(LiaXError::new(ErrorType::Parsing(format!("{}", e)))),
-                    },
-                    _ => (),
-                },
+                    }
+                }
                 None => {
                     return Err(LiaXError::new(ErrorType::Parsing(s(
                         "Unexpected end of tokens while parsing.",
@@ -295,7 +300,6 @@ impl Parser {
         }
 
         let (_, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
-        println!("after");
         Ok(show_datatype(&final_res))
     }
 }

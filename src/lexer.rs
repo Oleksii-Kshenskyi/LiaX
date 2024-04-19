@@ -6,6 +6,9 @@ pub enum Token {
     CloseParen,
     Int(i64),
     Identifier(String),
+
+    // Eval'ed tokens
+    Unit,
 }
 
 pub const VALID_ID_CHARS: &str = "+*-/_";

@@ -1,6 +1,8 @@
 use crate::errors::*;
+use crate::lexer::Token;
 
-use std::ops::Range;
+// TODO: Clean up the types.rs file. There are a couple warnings and commented out
+//       pieces of code, they may be worth removing.
 
 pub type LiaXResult = Result<DataType, LiaXError>;
 pub type BuiltinFn = fn(Vec<DataType>) -> LiaXResult;
@@ -18,8 +20,8 @@ impl IntType {
 #[derive(Clone, Debug)]
 pub struct FunctionType {
     name: String,
-    args_limit_lower: usize,
-    args_limit_higher: Option<usize>,
+    // args_limit_lower: usize,
+    // args_limit_higher: Option<usize>,
     args: Vec<DataType>,
     pointer: BuiltinFn,
 }
@@ -28,17 +30,17 @@ impl FunctionType {
     pub fn new(
         name: String,
         args: Vec<DataType>,
-        arg_limits: Range<usize>,
+        // arg_limits: Range<usize>,
         pointer: BuiltinFn,
     ) -> Self {
         Self {
             name: name.to_owned(),
-            args_limit_lower: arg_limits.start,
-            args_limit_higher: if arg_limits.end != usize::MAX {
-                Some(arg_limits.end)
-            } else {
-                None
-            },
+            // args_limit_lower: arg_limits.start,
+            // args_limit_higher: if arg_limits.end != usize::MAX {
+            //     Some(arg_limits.end)
+            // } else {
+            //     None
+            // },
             args,
             pointer,
         }
@@ -58,20 +60,17 @@ pub enum DataType {
     Unit,
 }
 
-#[derive(Clone, Debug)]
-pub enum Instruction {
-    NoOp,
-    Show(DataType),
-    Call(FunctionType),
-}
+// #[derive(Clone, Debug)]
+// pub enum Instruction {
+//     NoOp,
+//     Show(DataType),
+//     Call(FunctionType),
+// }
 
-pub fn show_datatype(atom: &DataType) -> String {
+pub fn show_datatype(atom: &Token) -> String {
     match atom {
-        DataType::Int(i) => i.value.to_string(),
-        DataType::Function(func) => format!(
-            "({} {{{} to {:?} args}})",
-            func.name, func.args_limit_lower, func.args_limit_higher
-        ),
-        DataType::Unit => s("()"),
+        Token::Int(i) => i.to_string(),
+        Token::Unit => s("()"),
+        t => format!("show_datatype(): don't know how to show `{:?}`.", *t),
     }
 }

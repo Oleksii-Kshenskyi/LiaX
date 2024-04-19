@@ -6,6 +6,7 @@ pub enum ErrorType {
     Lexing(String),
     Parsing(String),
     Eval(String),
+    Collapse(String),
 }
 
 pub fn s(s: &str) -> String {
@@ -23,6 +24,9 @@ impl Display for LiaXError {
             ErrorType::Lexing(m) => write!(f, "Lexing error: `{}`", m),
             ErrorType::Parsing(m) => write!(f, "Parsing error: `{}`", m),
             ErrorType::Eval(m) => write!(f, "Evaluation error: `{}`", m),
+            ErrorType::Collapse(m) => {
+                write!(f, "Error while collapsing a flat expression: `{}`", m)
+            }
         }
     }
 }

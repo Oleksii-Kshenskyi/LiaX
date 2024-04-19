@@ -44,8 +44,8 @@ fn only_s_exprs_and_atoms_are_valid() {
 
     assert!(assert_parsing_error(evaluate_sexpr(s("("))));
     assert!(assert_parsing_error(evaluate_sexpr(s(")"))));
-    // assert_eq!(Ok(s("KEKW")), evaluate_sexpr(s("(+ 3 3) 3")));
-    // assert!(assert_parsing_error(evaluate_sexpr(s("3 (+ 3 3)"))));
+    assert!(assert_parsing_error(evaluate_sexpr(s("(+ 3 3) 3"))));
+    assert!(assert_parsing_error(evaluate_sexpr(s("3 (+ 3 3)"))));
     assert!(assert_parsing_error(evaluate_sexpr(s("(+ 3 3"))));
 }
 
@@ -63,7 +63,7 @@ fn panics_due_to_int_overflow() {
 
 #[test]
 fn recursive_s_exprs_evaluate_successfully() {
-    // assert_eq!(Ok(s("12")), evaluate_sexpr(s("(+ (+ 1 2) (+ 0 4) (+ 4 1))")));
+    assert_eq!(Ok(s("12")), evaluate_sexpr(s("(+ (+ 1 2) (+ 0 4) (+ 4 1))")));
     // assert_eq!(Ok(s("50")), evaluate_sexpr(s("(+ (+ 5 5) (+ 5 (+ 2 3)) (+ (+ 5 5) (+ 5 5) (+ 5 5)))")));
 }
 

@@ -248,7 +248,11 @@ impl Parser {
         }
 
         println!("final flattened is: `{:?}`", flattened_expr);
-        let (_, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
+        let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
+        if check_index < flattened_expr.len() - 1 {
+            return Err(LiaXError::new(ErrorType::Parsing(format!("The s-expression has been evaluated, but the parsed expression still has these tokens left: `{:?}`", &v[check_index + 1..]))));
+        }
+        println!("check index: `{}`, flattened len is: `{}`", check_index, flattened_expr.len());
         Ok(show_datatype(&final_res))
     }
 }

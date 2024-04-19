@@ -44,7 +44,7 @@ fn only_s_exprs_and_atoms_are_valid() {
 
     assert!(assert_parsing_error(evaluate_sexpr(s("("))));
     assert!(assert_parsing_error(evaluate_sexpr(s(")"))));
-    // assert!(assert_parsing_error(evaluate_sexpr(s("(+ 3 3) 3"))));
+    assert!(assert_parsing_error(evaluate_sexpr(s("(+ 3 3) 3"))));
     assert!(assert_parsing_error(evaluate_sexpr(s("3 (+ 3 3)"))));
     assert!(assert_parsing_error(evaluate_sexpr(s("(+ 3 3"))));
 }

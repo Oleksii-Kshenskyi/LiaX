@@ -85,4 +85,5 @@ fn recursive_s_exprs_evaluate_successfully() {
 #[test]
 fn catches_known_corner_cases() {
     assert!(assert_lexing_error(evaluate_sexpr(s("6identifier")))); // identifier that starts with a digit is a lexing error
+    assert!(assert_eval_error(evaluate_sexpr(s("(+ whoops)"))));
 }

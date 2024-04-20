@@ -21,11 +21,14 @@ impl Parser {
     //       - start specifying where the actual errors happen
     //         (not just line/char number, but also argument number in a function, etc.)
 
+    // REFACTOR: DataType and Token have many mirroring variants.
+    //           Figure out a way to use DataType instead of Token in return type here.
     fn datatype_to_token(var: DataType) -> Token {
         match var {
             DataType::Unit => Token::Unit,
             DataType::Function(_) => unreachable!("Don't know how to show functions."),
             DataType::Int(i) => Token::Int(i.value),
+            DataType::Borked(e) => Token::Borked(e),
         }
     }
 
@@ -34,6 +37,7 @@ impl Parser {
             DataType::Unit => Ok(Token::Unit),
             DataType::Function(func) => func.call(maybe_func_args.unwrap_or(vec![])).map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
+            DataType::Borked(e) => Err(e),
         }
     }
 
@@ -74,10 +78,14 @@ impl Parser {
                         }
                         Token::Unit => DataType::Unit,
                         Token::Int(i) => DataType::Int(IntType::new(*i)),
-                        Token::Identifier(id) => unreachable!(
-                            "Expected a function argument, got an identifier `{}`.",
-                            id
-                        ),
+                        Token::Identifier(id) => {
+                            if let Some(obj) = self.identifiers.get(id) {
+                                obj.clone()
+                            } else {
+                                return DataType::Borked(LiaXError::new(ErrorType::Collapse(format!("Expected function argument, got unexpected identifier `{}`.", id))))
+                            }
+                        },
+                        Token::Borked(e) => DataType::Borked(e.clone()),
                     })
                     .collect();
                 Self::collapse_datatype(func.clone(), Some(args))
@@ -114,6 +122,7 @@ impl Parser {
                     ))))
                 }
                 Token::Int(i) => return Ok((1, Token::Int(*i))),
+                Token::Borked(e) => return Err(e.clone()),
             }
         }
 
@@ -187,6 +196,7 @@ impl Parser {
                     ))))
                 }
                 Token::Unit => return Ok(s("()")),
+                Token::Borked(e) => return Err(e.clone()),
             }
         }
 

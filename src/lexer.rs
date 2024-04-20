@@ -9,6 +9,7 @@ pub enum Token {
 
     // Eval'ed tokens
     Unit,
+    Borked(LiaXError),
 }
 
 pub const VALID_ID_CHARS: &str = "+*-/_";

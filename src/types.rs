@@ -50,6 +50,7 @@ pub enum DataType {
     Int(IntType),
     Function(FunctionType),
     Unit,
+    Borked(LiaXError),
 }
 
 pub fn show_datatype(atom: &Token) -> String {

@@ -5,8 +5,6 @@ use common::*;
 use liblia::errors::s;
 use liblia::eval::evaluate_sexpr;
 
-// FIXME: commented out tests are failing. Fix them.
-
 #[test]
 fn basic_sanity_checks() {
     assert_eq!(Ok(s("")), evaluate_sexpr(s("")));

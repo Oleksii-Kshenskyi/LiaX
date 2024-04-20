@@ -1,7 +1,5 @@
 use crate::{builtins::builtins_map, errors::*, lexer::*, types::*};
 
-// TODO: Once the recursion bugs from basic.rs tests are fixed,
-//       DO NOT FORGET TO CLEAN UP COMMENTED OUT CODE AND ALL THE PRINTS!
 pub struct Parser {
     to_parse: Vec<Token>,
 }
@@ -36,7 +34,6 @@ impl Parser {
     }
 
     fn collapse_expr(expr_size: usize, expr: &[Token]) -> Result<(usize, Token), LiaXError> {
-        println!("collapsing expr: `{:?}`", expr);
         if expr.len() < 2
             || expr[0] != Token::OpenParen
             || expr[expr.len() - 1] != Token::CloseParen
@@ -62,7 +59,6 @@ impl Parser {
 
         if let Token::Identifier(id) = expr[1].clone() {
             if let Some(func) = builtins_map().get(&id) {
-                println!("expr is: `{:?}`\n\n", expr);
                 let args: Vec<DataType> = expr[2..expr.len() - 1]
                     .iter()
                     .map(|el| match el {
@@ -80,11 +76,6 @@ impl Parser {
                         ),
                     })
                     .collect();
-                let result = Self::collapse_datatype(DataType::Function(FunctionType::new(
-                    id.clone(), args.clone(), *func,
-                )))
-                .map(|t| (expr_size, t));
-                println!("collapsed `{:?}` down to: {:?}", &expr, result);
                 return Self::collapse_datatype(DataType::Function(FunctionType::new(
                     id, args, *func,
                 )))
@@ -101,7 +92,6 @@ impl Parser {
     }
 
     fn eval_single_expr(starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
-        println!("=== START REC EVAL === post-kek flattened: `{:?}`", v);
         if v.len() == 1 {
             match &v[0] {
                 Token::OpenParen => {
@@ -126,7 +116,6 @@ impl Parser {
         }
 
         let mut pos = starting_pos;
-        println!("start pos: `{}`", pos);
         let mut flattened: Vec<Token> = vec![];
 
         if v.len() == 2 {
@@ -141,7 +130,6 @@ impl Parser {
         }
 
         if v[pos] != Token::OpenParen {
-            println!("pre-error v is: `{:?}`", v);
             return Err(LiaXError::new(ErrorType::Eval(format!(
                 "Expected an S-Expression to start with an `(`, it starts with `{:?}` instead.",
                 v[pos]
@@ -158,14 +146,11 @@ impl Parser {
                 match Self::eval_single_expr(pos, v) {
                     Err(e) => return Err(LiaXError::new(ErrorType::Eval(format!("{}", e)))),
                     Ok((shift, t)) => {
-                        println!("internal shift: `{}`", shift);
                         pos = pos + shift;
-                        println!("+++++ KEKEKE INTERNAL, pushing new token: `{:?}`, pos: `{}`, shift: `{}` =====", t, pos, shift);
                         flattened.push(t);
                     }
                 }
             } else {
-                println!("Adding to flattened: `{:?}`", v[pos]);
                 flattened.push(v[pos].clone());
 
                 pos += 1;
@@ -173,7 +158,6 @@ impl Parser {
         }
         flattened.push(v[pos].clone());
 
-        println!("pre-collapse flattened: `{:?}`", flattened);
         return Self::collapse_expr(pos - starting_pos + 1, &flattened);
         
     }
@@ -219,14 +203,12 @@ impl Parser {
             flattened_expr.push(Token::OpenParen);
         }
         while token_pos < v.len() {
-            println!("token_pos is `{}`", token_pos);
             match v.get(token_pos) {
                 Some(t) => {
                     if let Token::OpenParen = t {
                         match Self::eval_single_expr(token_pos, &v) {
                             Ok((shift, new_tok)) => {
                                 token_pos += shift;
-                                println!("===== KEKEKE parse, pushing new token: `{:?}`, pos: `{}`, shift: `{}` =====", new_tok, token_pos, shift);
                                 flattened_expr.push(new_tok);
                             }
                             Err(e) => {
@@ -234,7 +216,6 @@ impl Parser {
                             }
                         }
                     } else {
-                        println!("parse else t: `{:?}`, token_pos: `{}`", t, token_pos);
                         flattened_expr.push(t.clone());
                         token_pos += 1;
                     }
@@ -247,8 +228,6 @@ impl Parser {
             }
         }
 
-        println!("final flattened is: `{:?}`", flattened_expr);
-        println!("final v is: `{:?}`, v len is `{}`", &v, v.len());
         let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
         if check_index < flattened_expr.len() {
             return Err(LiaXError::new(ErrorType::Parsing(format!("Expected the end of an S-Expression, but still have `{:?}` left. Please check that you don't have any rogue symbols outside of S-Expressions.", &flattened_expr[check_index..]))));

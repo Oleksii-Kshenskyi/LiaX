@@ -12,12 +12,14 @@ fn dt_for_builtin(pointer: BuiltinFn) -> DataType {
     DataType::Function(FunctionType::new(pointer))
 }
 
+// TODO: Implement partial application of functions!
 pub fn builtins_map() -> HashMap<String, DataType> {
     [
         ("+".to_owned(), dt_for_builtin(add)),
         ("-".to_owned(), dt_for_builtin(sub)),
         ("*".to_owned(), dt_for_builtin(mul)),
         ("/".to_owned(), dt_for_builtin(div)),
+        ("list".to_owned(), dt_for_builtin(list)),
     ]
     .into_iter()
     .collect()
@@ -132,4 +134,8 @@ pub fn div(to_add: Vec<DataType>) -> LiaXResult {
             })
             .fold(first, |acc, x| acc / x),
     )))
+}
+
+pub fn list(elems: Vec<DataType>) -> LiaXResult {
+    Ok(DataType::List(elems))
 }

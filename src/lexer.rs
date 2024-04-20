@@ -1,4 +1,4 @@
-use crate::errors::*;
+use crate::{errors::*, types::DataType};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
@@ -10,6 +10,7 @@ pub enum Token {
     // Eval'ed tokens
     Unit,
     Borked(LiaXError),
+    List(Vec<DataType>),
 }
 
 pub const VALID_ID_CHARS: &str = "+*-/_";

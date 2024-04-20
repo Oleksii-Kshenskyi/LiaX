@@ -6,7 +6,7 @@ use crate::lexer::Token;
 pub type LiaXResult = Result<DataType, LiaXError>;
 pub type BuiltinFn = fn(Vec<DataType>) -> LiaXResult;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct IntType {
     pub value: i64,
 }
@@ -16,7 +16,7 @@ impl IntType {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FunctionType {
     // name: String,
     // args: Vec<DataType>,
@@ -45,18 +45,23 @@ impl FunctionType {
 // TODO: introduce strings
 // TODO: introduce function type (functions as arguments for higher order functions)
 // TODO: separate but related to the previous TODO: implement lambda (anonymous) functions
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DataType {
     Int(IntType),
     Function(FunctionType),
+    List(Vec<DataType>),
     Unit,
     Borked(LiaXError),
 }
 
+// REFACTOR: Once all Tokens are switched to DataTypes and the "Eval'ed tokens" are gone,
+//           refactor showing DataType::List properly, using show_datatype for each
+//           member of the list.
 pub fn show_datatype(atom: &Token) -> String {
     match atom {
         Token::Int(i) => i.to_string(),
         Token::Unit => s("()"),
+        Token::List(v) => format!("{:?}", v),
         t => format!("show_datatype(): don't know how to show `{:?}`.", *t),
     }
 }

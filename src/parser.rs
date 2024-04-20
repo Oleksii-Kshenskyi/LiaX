@@ -29,6 +29,7 @@ impl Parser {
             DataType::Function(_) => unreachable!("Don't know how to show functions."),
             DataType::Int(i) => Token::Int(i.value),
             DataType::Borked(e) => Token::Borked(e),
+            DataType::List(v) => Token::List(v),
         }
     }
 
@@ -38,6 +39,7 @@ impl Parser {
             DataType::Function(func) => func.call(maybe_func_args.unwrap_or(vec![])).map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
             DataType::Borked(e) => Err(e),
+            DataType::List(v) => Ok(Token::List(v)),
         }
     }
 
@@ -86,6 +88,7 @@ impl Parser {
                             }
                         },
                         Token::Borked(e) => DataType::Borked(e.clone()),
+                        Token::List(v) => DataType::List(v.clone()),
                     })
                     .collect();
                 Self::collapse_datatype(func.clone(), Some(args))
@@ -123,6 +126,7 @@ impl Parser {
                 }
                 Token::Int(i) => return Ok((1, Token::Int(*i))),
                 Token::Borked(e) => return Err(e.clone()),
+                Token::List(v) => return Ok((1, Token::List(v.clone()))),
             }
         }
 
@@ -197,6 +201,7 @@ impl Parser {
                 }
                 Token::Unit => return Ok(s("()")),
                 Token::Borked(e) => return Err(e.clone()),
+                Token::List(v) => return Ok(format!("{:?}", v)),
             }
         }
 

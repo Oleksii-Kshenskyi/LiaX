@@ -28,7 +28,7 @@ impl Parser {
     fn collapse_datatype(var: DataType) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
-            DataType::Function(func) => func.call().map(|res| Self::datatype_to_token(res)),
+            DataType::Function(func) => func.call().map( Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
         }
     }
@@ -76,18 +76,18 @@ impl Parser {
                         ),
                     })
                     .collect();
-                return Self::collapse_datatype(DataType::Function(FunctionType::new(
-                    id, args, *func,
+                Self::collapse_datatype(DataType::Function(FunctionType::new(
+                    /*id,*/args, *func,
                 )))
-                .map(|t| (expr_size, t));
+                .map(|t| (expr_size, t))
             } else {
-                return Err(LiaXError::new(ErrorType::Collapse(format!(
+                Err(LiaXError::new(ErrorType::Collapse(format!(
                     "Expected a known function name, got unknown identifier `{}`.",
                     id
-                ))));
+                ))))
             }
         } else {
-            return Err(LiaXError::new(ErrorType::Collapse(format!("Can only collapse function calls. Expected an identifier (a function name) as the first token in the expression, got `{:?}` instead.", expr))));
+            Err(LiaXError::new(ErrorType::Collapse(format!("Can only collapse function calls. Expected an identifier (a function name) as the first token in the expression, got `{:?}` instead.", expr))))
         }
     }
 
@@ -146,7 +146,7 @@ impl Parser {
                 match Self::eval_single_expr(pos, v) {
                     Err(e) => return Err(LiaXError::new(ErrorType::Eval(format!("{}", e)))),
                     Ok((shift, t)) => {
-                        pos = pos + shift;
+                        pos += shift;
                         flattened.push(t);
                     }
                 }
@@ -158,8 +158,7 @@ impl Parser {
         }
         flattened.push(v[pos].clone());
 
-        return Self::collapse_expr(pos - starting_pos + 1, &flattened);
-        
+        Self::collapse_expr(pos - starting_pos + 1, &flattened)
     }
 
     pub fn parse(&mut self) -> Result<String, LiaXError> {
@@ -206,7 +205,7 @@ impl Parser {
             match v.get(token_pos) {
                 Some(t) => {
                     if let Token::OpenParen = t {
-                        match Self::eval_single_expr(token_pos, &v) {
+                        match Self::eval_single_expr(token_pos, v) {
                             Ok((shift, new_tok)) => {
                                 token_pos += shift;
                                 flattened_expr.push(new_tok);

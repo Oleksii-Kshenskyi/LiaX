@@ -19,28 +19,19 @@ impl IntType {
 
 #[derive(Clone, Debug)]
 pub struct FunctionType {
-    name: String,
-    // args_limit_lower: usize,
-    // args_limit_higher: Option<usize>,
+    // name: String,
     args: Vec<DataType>,
     pointer: BuiltinFn,
 }
 
 impl FunctionType {
     pub fn new(
-        name: String,
+        // name: String,
         args: Vec<DataType>,
-        // arg_limits: Range<usize>,
         pointer: BuiltinFn,
     ) -> Self {
         Self {
-            name: name.to_owned(),
-            // args_limit_lower: arg_limits.start,
-            // args_limit_higher: if arg_limits.end != usize::MAX {
-            //     Some(arg_limits.end)
-            // } else {
-            //     None
-            // },
+            // name: name.to_owned(),
             args,
             pointer,
         }
@@ -59,13 +50,6 @@ pub enum DataType {
     Function(FunctionType),
     Unit,
 }
-
-// #[derive(Clone, Debug)]
-// pub enum Instruction {
-//     NoOp,
-//     Show(DataType),
-//     Call(FunctionType),
-// }
 
 pub fn show_datatype(atom: &Token) -> String {
     match atom {

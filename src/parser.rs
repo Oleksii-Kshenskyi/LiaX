@@ -33,10 +33,15 @@ impl Parser {
         }
     }
 
-    fn collapse_datatype(var: DataType, maybe_func_args: Option<Vec<DataType>>) -> Result<Token, LiaXError> {
+    fn collapse_datatype(
+        var: DataType,
+        maybe_func_args: Option<Vec<DataType>>,
+    ) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
-            DataType::Function(func) => func.call(maybe_func_args.unwrap_or(vec![])).map(Self::datatype_to_token),
+            DataType::Function(func) => func
+                .call(maybe_func_args.unwrap_or(vec![]))
+                .map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
             DataType::Borked(e) => Err(e),
             DataType::List(v) => Ok(Token::List(v)),
@@ -91,8 +96,7 @@ impl Parser {
                         Token::List(v) => DataType::List(v.clone()),
                     })
                     .collect();
-                Self::collapse_datatype(func.clone(), Some(args))
-                .map(|t| (expr_size, t))
+                Self::collapse_datatype(func.clone(), Some(args)).map(|t| (expr_size, t))
             } else {
                 Err(LiaXError::new(ErrorType::Collapse(format!(
                     "Expected a known function name, got unknown identifier `{}`.",
@@ -104,7 +108,11 @@ impl Parser {
         }
     }
 
-    fn eval_single_expr(&self, starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
+    fn eval_single_expr(
+        &self,
+        starting_pos: usize,
+        v: &[Token],
+    ) -> Result<(usize, Token), LiaXError> {
         if v.len() == 1 {
             match &v[0] {
                 Token::OpenParen => {

@@ -29,3 +29,5 @@ fn arithmetic_ops_work() {
     assert_eq!(Ok(s("1")), evaluate_sexpr(s("(/ 50 (/ 50 2) (/ 2))")));
     assert!(assert_eval_error(evaluate_sexpr(s("(/ 2 0)"))));
 }
+
+// TODO: Write tests for (map), (list) and any other non-arithmetic builtins to be added.

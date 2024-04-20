@@ -20,6 +20,7 @@ pub fn builtins_map() -> HashMap<String, DataType> {
         ("*".to_owned(), dt_for_builtin(mul)),
         ("/".to_owned(), dt_for_builtin(div)),
         ("list".to_owned(), dt_for_builtin(list)),
+        ("map".to_owned(), dt_for_builtin(map)),
     ]
     .into_iter()
     .collect()
@@ -104,13 +105,15 @@ pub fn div(to_add: Vec<DataType>) -> LiaXResult {
             "ERROR: Currently, you can only perform arithmetic operations on ints.",
         ))));
     }
-    if to_add.len() > 1 && to_add[1..].iter().any(|e| {
-        if let DataType::Int(IntType { value: i }) = e {
-            *i == 0
-        } else {
-            unreachable!("Non-int in division while checking for zero division.")
-        }
-    }) {
+    if to_add.len() > 1
+        && to_add[1..].iter().any(|e| {
+            if let DataType::Int(IntType { value: i }) = e {
+                *i == 0
+            } else {
+                unreachable!("Non-int in division while checking for zero division.")
+            }
+        })
+    {
         return Err(LiaXError::new(ErrorType::Eval(s(
             "Tried to divide by zero.",
         ))));
@@ -124,18 +127,45 @@ pub fn div(to_add: Vec<DataType>) -> LiaXResult {
     };
 
     Ok(DataType::Int(IntType::new(
-        iter
-            .map(|dt| {
-                if let DataType::Int(i) = dt {
-                    i.value
-                } else {
-                    unreachable!("INTERNAL COMPILER ERROR: Non-int in division!")
-                }
-            })
-            .fold(first, |acc, x| acc / x),
+        iter.map(|dt| {
+            if let DataType::Int(i) = dt {
+                i.value
+            } else {
+                unreachable!("INTERNAL COMPILER ERROR: Non-int in division!")
+            }
+        })
+        .fold(first, |acc, x| acc / x),
     )))
 }
 
 pub fn list(elems: Vec<DataType>) -> LiaXResult {
     Ok(DataType::List(elems))
+}
+
+pub fn map(args: Vec<DataType>) -> LiaXResult {
+    if args.len() != 2 {
+        return Err(LiaXError::new(ErrorType::Eval(format!("(map) function expects exactly two arguments: a function to apply to a list element and the list to apply it to. Got these arguments instead: `{:?}`", args))));
+    }
+    if let DataType::Function(f) = args.first().unwrap() {
+        if let DataType::List(v) = args.get(1).unwrap() {
+            let results = v.iter()
+                    .map(|el| f.call(vec![el.clone()]))
+                    .collect::<Vec<_>>();
+            let mut oks: Vec<DataType> = vec![];
+            for res in results {
+                match res {
+                    Err(e) => return Err(e),
+                    Ok(dt) => oks.push(dt),
+                }
+            }
+            return Ok(DataType::List(oks));
+        } else {
+            return Err(LiaXError::new(ErrorType::Eval(format!("(map) expects a list to apply the first argument's function to as the second argument. Got `{:?} instead.`", args.get(1).unwrap()))));
+        }
+    } else {
+        return Err(LiaXError::new(ErrorType::Eval(format!(
+            "(map) expects a function object as the first argument, got `{:?}` instead.",
+            args.first().unwrap()
+        ))));
+    }
 }

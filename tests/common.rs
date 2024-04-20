@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use liblia::errors::{ErrorType, LiaXError};
 
 pub fn assert_lexing_error(res: Result<String, LiaXError>) -> bool {

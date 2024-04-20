@@ -28,7 +28,7 @@ impl Parser {
     fn collapse_datatype(var: DataType) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
-            DataType::Function(func) => func.call().map( Self::datatype_to_token),
+            DataType::Function(func) => func.call().map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
         }
     }
@@ -77,7 +77,7 @@ impl Parser {
                     })
                     .collect();
                 Self::collapse_datatype(DataType::Function(FunctionType::new(
-                    /*id,*/args, *func,
+                    /*id,*/ args, *func,
                 )))
                 .map(|t| (expr_size, t))
             } else {

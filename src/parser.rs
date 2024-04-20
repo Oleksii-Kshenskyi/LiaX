@@ -40,7 +40,7 @@ impl Parser {
         match var {
             DataType::Unit => Ok(Token::Unit),
             DataType::Function(func) => func
-                .call(maybe_func_args.unwrap_or(vec![]))
+                .call(maybe_func_args.unwrap_or_default())
                 .map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
             DataType::Borked(e) => Err(e),
@@ -89,7 +89,7 @@ impl Parser {
                             if let Some(obj) = self.identifiers.get(id) {
                                 obj.clone()
                             } else {
-                                return DataType::Borked(LiaXError::new(ErrorType::Collapse(format!("Expected function argument, got unexpected identifier `{}`.", id))))
+                                DataType::Borked(LiaXError::new(ErrorType::Collapse(format!("Expected function argument, got unexpected identifier `{}`.", id))))
                             }
                         },
                         Token::Borked(e) => DataType::Borked(e.clone()),

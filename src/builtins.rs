@@ -121,7 +121,7 @@ pub fn div(to_add: Vec<DataType>) -> LiaXResult {
 
     let mut iter = to_add.iter();
     let first = match iter.next() {
-        None => 1 as i64,
+        None => 1,
         Some(DataType::Int(IntType { value: i })) => *i,
         dt => unreachable!("Rogue data type in division: `{:?}`", dt),
     };
@@ -158,14 +158,14 @@ pub fn map(args: Vec<DataType>) -> LiaXResult {
                     Ok(dt) => oks.push(dt),
                 }
             }
-            return Ok(DataType::List(oks));
+            Ok(DataType::List(oks))
         } else {
-            return Err(LiaXError::new(ErrorType::Eval(format!("(map) expects a list to apply the first argument's function to as the second argument. Got `{:?} instead.`", args.get(1).unwrap()))));
+            Err(LiaXError::new(ErrorType::Eval(format!("(map) expects a list to apply the first argument's function to as the second argument. Got `{:?} instead.`", args.get(1).unwrap()))))
         }
     } else {
-        return Err(LiaXError::new(ErrorType::Eval(format!(
+        Err(LiaXError::new(ErrorType::Eval(format!(
             "(map) expects a function object as the first argument, got `{:?}` instead.",
             args.first().unwrap()
-        ))));
+        ))))
     }
 }

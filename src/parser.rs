@@ -1,13 +1,17 @@
 use crate::{builtins::builtins_map, errors::*, lexer::*, types::*};
 
+use std::collections::HashMap;
+
 pub struct Parser {
     to_parse: Vec<Token>,
+    identifiers: HashMap<String, DataType>,
 }
 
 impl Parser {
     pub fn new(tokens: &[Token]) -> Self {
         Self {
             to_parse: tokens.to_owned(),
+            identifiers: builtins_map(),
         }
     }
 
@@ -25,15 +29,15 @@ impl Parser {
         }
     }
 
-    fn collapse_datatype(var: DataType) -> Result<Token, LiaXError> {
+    fn collapse_datatype(var: DataType, maybe_func_args: Option<Vec<DataType>>) -> Result<Token, LiaXError> {
         match var {
             DataType::Unit => Ok(Token::Unit),
-            DataType::Function(func) => func.call().map(Self::datatype_to_token),
+            DataType::Function(func) => func.call(maybe_func_args.unwrap_or(vec![])).map(Self::datatype_to_token),
             DataType::Int(i) => Ok(Token::Int(i.value)),
         }
     }
 
-    fn collapse_expr(expr_size: usize, expr: &[Token]) -> Result<(usize, Token), LiaXError> {
+    fn collapse_expr(&self, expr_size: usize, expr: &[Token]) -> Result<(usize, Token), LiaXError> {
         if expr.len() < 2
             || expr[0] != Token::OpenParen
             || expr[expr.len() - 1] != Token::CloseParen
@@ -58,7 +62,7 @@ impl Parser {
         }
 
         if let Token::Identifier(id) = expr[1].clone() {
-            if let Some(func) = builtins_map().get(&id) {
+            if let Some(func) = self.identifiers.get(&id) {
                 let args: Vec<DataType> = expr[2..expr.len() - 1]
                     .iter()
                     .map(|el| match el {
@@ -76,9 +80,7 @@ impl Parser {
                         ),
                     })
                     .collect();
-                Self::collapse_datatype(DataType::Function(FunctionType::new(
-                    /*id,*/ args, *func,
-                )))
+                Self::collapse_datatype(func.clone(), Some(args))
                 .map(|t| (expr_size, t))
             } else {
                 Err(LiaXError::new(ErrorType::Collapse(format!(
@@ -91,7 +93,7 @@ impl Parser {
         }
     }
 
-    fn eval_single_expr(starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
+    fn eval_single_expr(&self, starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
         if v.len() == 1 {
             match &v[0] {
                 Token::OpenParen => {
@@ -143,7 +145,7 @@ impl Parser {
             }
 
             if v[pos] == Token::OpenParen {
-                match Self::eval_single_expr(pos, v) {
+                match self.eval_single_expr(pos, v) {
                     Err(e) => return Err(LiaXError::new(ErrorType::Eval(format!("{}", e)))),
                     Ok((shift, t)) => {
                         pos += shift;
@@ -158,7 +160,7 @@ impl Parser {
         }
         flattened.push(v[pos].clone());
 
-        Self::collapse_expr(pos - starting_pos + 1, &flattened)
+        self.collapse_expr(pos - starting_pos + 1, &flattened)
     }
 
     pub fn parse(&mut self) -> Result<String, LiaXError> {
@@ -205,7 +207,7 @@ impl Parser {
             match v.get(token_pos) {
                 Some(t) => {
                     if let Token::OpenParen = t {
-                        match Self::eval_single_expr(token_pos, v) {
+                        match self.eval_single_expr(token_pos, v) {
                             Ok((shift, new_tok)) => {
                                 token_pos += shift;
                                 flattened_expr.push(new_tok);
@@ -227,7 +229,7 @@ impl Parser {
             }
         }
 
-        let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
+        let (check_index, final_res) = self.eval_single_expr(0, &flattened_expr)?;
         if check_index < flattened_expr.len() {
             return Err(LiaXError::new(ErrorType::Parsing(format!("Expected the end of an S-Expression, but still have `{:?}` left. Please check that you don't have any rogue symbols outside of S-Expressions.", &flattened_expr[check_index..]))));
         }

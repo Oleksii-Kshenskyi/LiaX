@@ -1,9 +1,8 @@
 use crate::errors::*;
 use crate::lexer::Token;
 
-// TODO: Clean up the types.rs file. There are a couple warnings and commented out
-//       pieces of code, they may be worth removing.
-
+// TODO: Move everything but show_datatype() to LiaXResult instead of
+//       String in the Ok type.
 pub type LiaXResult = Result<DataType, LiaXError>;
 pub type BuiltinFn = fn(Vec<DataType>) -> LiaXResult;
 
@@ -20,30 +19,32 @@ impl IntType {
 #[derive(Clone, Debug)]
 pub struct FunctionType {
     // name: String,
-    args: Vec<DataType>,
+    // args: Vec<DataType>,
     pointer: BuiltinFn,
 }
 
 impl FunctionType {
     pub fn new(
         // name: String,
-        args: Vec<DataType>,
+        // args: Vec<DataType>,
         pointer: BuiltinFn,
     ) -> Self {
         Self {
             // name: name.to_owned(),
-            args,
+            // args,
             pointer,
         }
     }
 
-    pub fn call(&self) -> LiaXResult {
-        (self.pointer)(self.args.clone())
+    pub fn call(&self, args: Vec<DataType>) -> LiaXResult {
+        (self.pointer)(args)
     }
 }
 
 // TODO: introduce floats
 // TODO: introduce strings
+// TODO: introduce function type (functions as arguments for higher order functions)
+// TODO: separate but related to the previous TODO: implement lambda (anonymous) functions
 #[derive(Clone, Debug)]
 pub enum DataType {
     Int(IntType),

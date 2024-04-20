@@ -2,17 +2,22 @@ use std::collections::HashMap;
 
 use crate::{errors::*, types::*};
 
-// TODO: introduce string functions
+// TODO: introduce string library
 // TODO: introduce functional iteration (map, filter, reduce, all, etc.)
+//       This also requires introducing functions as function arguments.
 // TODO: introduce printing
 // TODO: introduce file IO
 
-pub fn builtins_map() -> HashMap<String, BuiltinFn> {
+fn dt_for_builtin(pointer: BuiltinFn) -> DataType {
+    DataType::Function(FunctionType::new(pointer))
+}
+
+pub fn builtins_map() -> HashMap<String, DataType> {
     [
-        ("+".to_owned(), add as BuiltinFn),
-        ("-".to_owned(), sub as BuiltinFn),
-        ("*".to_owned(), mul as BuiltinFn),
-        ("/".to_owned(), div as BuiltinFn),
+        ("+".to_owned(), dt_for_builtin(add)),
+        ("-".to_owned(), dt_for_builtin(sub)),
+        ("*".to_owned(), dt_for_builtin(mul)),
+        ("/".to_owned(), dt_for_builtin(div)),
     ]
     .into_iter()
     .collect()

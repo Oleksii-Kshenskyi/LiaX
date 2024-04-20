@@ -3,7 +3,7 @@
 use liblia::errors::s;
 use liblia::eval::evaluate_sexpr;
 
-pub const THE_SEXPR: &str = "(/ 50)";
+pub const THE_SEXPR: &str = "(+ some-id)";
 
 // TODO: end goal: Write a program (in a file) in LiaX that
 //       encrypts and decrypts a file with a Vigenere-style algorithm.

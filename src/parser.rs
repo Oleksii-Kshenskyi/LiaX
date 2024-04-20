@@ -249,7 +249,10 @@ impl Parser {
 
         println!("final flattened is: `{:?}`", flattened_expr);
         println!("final v is: `{:?}`, v len is `{}`", &v, v.len());
-        let (_, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
+        let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
+        if check_index < flattened_expr.len() {
+            return Err(LiaXError::new(ErrorType::Parsing(format!("Expected the end of an S-Expression, but still have `{:?}` left. Please check that you don't have any rogue symbols outside of S-Expressions.", &flattened_expr[check_index..]))));
+        }
 
         Ok(show_datatype(&final_res))
     }

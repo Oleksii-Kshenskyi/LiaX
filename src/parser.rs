@@ -80,6 +80,11 @@ impl Parser {
                         ),
                     })
                     .collect();
+                let result = Self::collapse_datatype(DataType::Function(FunctionType::new(
+                    id.clone(), args.clone(), *func,
+                )))
+                .map(|t| (expr_size, t));
+                println!("collapsed `{:?}` down to: {:?}", &expr, result);
                 return Self::collapse_datatype(DataType::Function(FunctionType::new(
                     id, args, *func,
                 )))
@@ -96,7 +101,7 @@ impl Parser {
     }
 
     fn eval_single_expr(starting_pos: usize, v: &[Token]) -> Result<(usize, Token), LiaXError> {
-        println!("post-kek flattened: `{:?}`", v);
+        println!("=== START REC EVAL === post-kek flattened: `{:?}`", v);
         if v.len() == 1 {
             match &v[0] {
                 Token::OpenParen => {
@@ -143,7 +148,6 @@ impl Parser {
             ))));
         }
         flattened.push(Token::OpenParen);
-        let mut recursive = false;
         pos += 1;
         while v[pos] != Token::CloseParen {
             if pos >= v.len() - 1 {
@@ -151,7 +155,6 @@ impl Parser {
             }
 
             if v[pos] == Token::OpenParen {
-                recursive = true;
                 match Self::eval_single_expr(pos, v) {
                     Err(e) => return Err(LiaXError::new(ErrorType::Eval(format!("{}", e)))),
                     Ok((shift, t)) => {
@@ -163,32 +166,16 @@ impl Parser {
                 }
             } else {
                 println!("Adding to flattened: `{:?}`", v[pos]);
-                // TODO: This is a hack.
-                //       Once the main bug is fixed, find out why this expression
-                //       leads to adding a "+" identifier into the flattened expr
-                //       and maybe try to get rid of this weird if:
-                //       "(+ (+ (+ 1 (+ 1 3)) 3) 1)"
-                if !(flattened.len() > 0
-                    && *flattened.last().unwrap() != Token::OpenParen
-                    && matches!(v[pos], Token::Identifier(_)))
-                {
-                    flattened.push(v[pos].clone());
-                }
+                flattened.push(v[pos].clone());
+
                 pos += 1;
             }
         }
         flattened.push(v[pos].clone());
 
-        if !recursive {
-            // if v.len() > pos + 1 {
-            //     return Err(LiaXError::new(ErrorType::Parsing(format!("Expected expression to end at the end of the S-Expression, but it still has `{:?}` left at the end.", &v[pos+1..]))));
-            // }
-            println!("pre-collapse flattened: `{:?}`", flattened);
-            return Self::collapse_expr(pos - starting_pos, &flattened);
-        }
-
-        println!("pre-kek flattened: `{:?}`", flattened);
-        Self::eval_single_expr(0, &flattened)
+        println!("pre-collapse flattened: `{:?}`", flattened);
+        return Self::collapse_expr(pos - starting_pos + 1, &flattened);
+        
     }
 
     pub fn parse(&mut self) -> Result<String, LiaXError> {
@@ -238,7 +225,7 @@ impl Parser {
                     if let Token::OpenParen = t {
                         match Self::eval_single_expr(token_pos, &v) {
                             Ok((shift, new_tok)) => {
-                                token_pos += shift + 1;
+                                token_pos += shift;
                                 println!("===== KEKEKE parse, pushing new token: `{:?}`, pos: `{}`, shift: `{}` =====", new_tok, token_pos, shift);
                                 flattened_expr.push(new_tok);
                             }
@@ -262,19 +249,8 @@ impl Parser {
 
         println!("final flattened is: `{:?}`", flattened_expr);
         println!("final v is: `{:?}`, v len is `{}`", &v, v.len());
-        let (check_index, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
-        // NOTE: the check index code prevents the `(+ 3 3) 3` bug but bugs out on `"(+ (+ (+ 2 16)))"`.
+        let (_, final_res) = Self::eval_single_expr(0, &flattened_expr)?;
 
-
-        // if check_index < flattened_expr.len() - 1 {
-        //     println!("check index: `{}`, flattened len is: `{}`", check_index, flattened_expr.len());
-        //     return Err(LiaXError::new(ErrorType::Parsing(format!("The s-expression has been evaluated, but the parsed expression still has these tokens left: `{:?}`", &v[(check_index+1)..]))));
-        // }
-        // println!(
-        //     "check index: `{}`, flattened len is: `{}`",
-        //     check_index,
-        //     flattened_expr.len()
-        // );
         Ok(show_datatype(&final_res))
     }
 }
